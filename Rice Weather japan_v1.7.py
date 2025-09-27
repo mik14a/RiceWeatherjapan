@@ -1,7 +1,7 @@
 import os
 # sourceフォルダからゲームのロジックを読み込む
 # これで RiceGameWindow クラスが使えるようになる
-from source.game_logic import RiceGameWindow
+from source.rice_game_window import RiceGameWindow
 
 
 def main():
