@@ -2,94 +2,13 @@ import pygame
 import random
 import time
 import os
-import math
 import csv
+import json
 from typing import Dict, List, Tuple, Optional
 from PIL import Image
 
-class NewsItem:
-    def __init__(self, name: str, content: str):
-        self.name = name
-        self.content = content
-
-class Character:
-    def __init__(self, name: str, role: str, image_path: str):
-        self.name = name
-        self.role = role
-        self.image_path = image_path
-        self.image = None
-
-    def get_message(self, price: int, month: int) -> str:
-        """価格と月に応じてキャラクターのメッセージを生成"""
-        if self.role == "主婦":
-            return self._housewife_message(price, month)
-        elif self.role == "農家":
-            return self._farmer_message(price, month)
-        elif self.role == "政治家":
-            return self._politician_message(price, month)
-
-    def _housewife_message(self, price: int, month: int) -> str:
-        if price < 300:
-            messages = [
-                "お米が安くて助かる！家計が楽になるの。",
-                "この価格なら子供たちにたくさん食べさせられる！",
-                "安いお米で今月は贅沢できそう♪"
-            ]
-        elif price < 500:
-            messages = [
-                "まあまあの値段ね。家計を考えると普通かしら。",
-                "この価格なら我慢できる範囲ね。",
-                "もう少し安くなってくれるといいんだけど..."
-            ]
-        else:
-            messages = [
-                "お米が高すぎる！家計が大変よ！",
-                "この値段じゃ節約しないと。パンに変えようかしら。",
-                "政府は何をしているの！生活が苦しいわ！"
-            ]
-        return random.choice(messages)
-
-    def _farmer_message(self, price: int, month: int) -> str:
-        if price < 300:
-            messages = [
-                "価格が安すぎる！これじゃ生活できないよ！",
-                "こんな安値じゃ農業を続けられない...",
-                "コストを考えると赤字だ。政府の支援が必要だ。"
-            ]
-        elif price < 500:
-            messages = [
-                "まあまあの価格だな。なんとか生活できる。",
-                "この価格なら農業を続けられそうだ。",
-                "もう少し高くなってくれるとありがたいが..."
-            ]
-        else:
-            messages = [
-                "いい価格だ！これで投資もできる！",
-                "高値で助かる！新しい設備を導入しよう。",
-                "この調子で価格が安定してくれるといいな。"
-            ]
-        return random.choice(messages)
-
-    def _politician_message(self, price: int, month: int) -> str:
-        if price < 300:
-            messages = [
-                "価格安定化のため農家支援策を検討します。",
-                "消費者には朗報ですが、生産者支援が必要ですね。",
-                "市場介入を検討する時期かもしれません。"
-            ]
-        elif price < 500:
-            messages = [
-                "適正価格を維持しており、政策は順調です。",
-                "バランスの取れた価格帯を維持しています。",
-                "現在の政策を継続して参ります。"
-            ]
-        else:
-            messages = [
-                "高騰抑制策を緊急に検討いたします。",
-                "消費者負担軽減のため対策を講じます。",
-                "価格安定化に向けて全力で取り組みます。"
-            ]
-        return random.choice(messages)
+from source.character import Character
+from source.news_item import NewsItem
 
 class RiceGameWindow:
     def __init__(self):
@@ -126,8 +45,7 @@ class RiceGameWindow:
         self.last_update = time.time()
 
         # ニュースシステム
-        self.news_items = []
-        self.load_news_csv()
+        self.news_items = NewsItem.load_from_csv(os.path.join("assets", "data", "news.csv"))
         self.showing_news = False
         self.current_news = None
         self.news_start_time = 0
@@ -136,9 +54,9 @@ class RiceGameWindow:
 
         # キャラクター設定
         self.characters = [
-            Character("田中さん", "主婦", os.path.join("assets", "images", "housewife.png")),
-            Character("山田さん", "農家", os.path.join("assets", "images", "farmer.png")),
-            Character("佐藤議員", "政治家", os.path.join("assets", "images", "politician.png"))
+            Character.create_from_config("田中さん", "主婦", "housewife"),
+            Character.create_from_config("山田さん", "農家", "farmer"),
+            Character.create_from_config("佐藤議員", "政治家", "politician")
         ]
         self.current_speaker = 0
 
@@ -182,33 +100,6 @@ class RiceGameWindow:
         # 背景画像（季節別）
         self.background_images = {}
         self.load_resources()
-
-    def load_news_csv(self):
-        """news.csvからニュース項目を読み込み"""
-        csv_path = os.path.join("assets", "data", "news.csv")
-        self.news_items = []
-
-        if not os.path.exists(csv_path):
-            print(f"警告: {csv_path}が見つかりません。ニュース機能は無効になります。")
-            return
-
-        try:
-            with open(csv_path, 'r', encoding='utf-8') as file:
-                csv_reader = csv.reader(file)
-                header = next(csv_reader, None)  # ヘッダー行をスキップ
-
-                for row in csv_reader:
-                    if len(row) >= 4:  # C列（インデックス2）とD列（インデックス3）が存在することを確認
-                        name = row[2].strip()  # C列：名前
-                        content = row[3].strip()  # D列：本文
-
-                        if name and content:  # 空でない場合のみ追加
-                            self.news_items.append(NewsItem(name, content))
-
-            print(f"ニュース項目を{len(self.news_items)}件読み込みました。")
-
-        except Exception as e:
-            print(f"news.csvの読み込み中にエラーが発生しました: {e}")
 
     def should_show_news(self) -> bool:
         """ニュースを表示するかどうかを決定（10-36%の確率）"""
@@ -446,7 +337,7 @@ class RiceGameWindow:
     def set_new_message(self):
         """新しいメッセージを設定"""
         speaker = self.characters[self.current_speaker]
-        self.current_message = speaker.get_message(self.rice_price, self.current_month)
+        self.current_message = speaker.get_message(self.rice_price)
         self.display_message = ""
         self.message_index = 0
 
