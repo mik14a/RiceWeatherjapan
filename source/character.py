@@ -1,14 +1,25 @@
 import random
 import json
 import os
+import sys
+
+def resource_path(relative_path):
+    """ 実行ファイル（.exe) とソースコードの両方でリソースへのパスを解決する """
+    try:
+        # PyInstallerが作成する一時フォルダ
+        base_path = sys._MEIPASS
+    except Exception:
+        # 通常のPython環境
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 class Character:
     @classmethod
     def create_from_config(cls, name: str, role: str, role_id: str):
         """指定された役割IDからメッセージと画像を読み込み、Characterインスタンスを生成する"""
         # role_idから画像パスとメッセージパスを生成
-        image_path = os.path.join('assets', 'images', f'{role_id}.png')
-        message_path = os.path.join('assets', 'messages', f'{role_id}.json')
+        image_path = resource_path(os.path.join('assets', 'images', f'{role_id}.png'))
+        message_path = resource_path(os.path.join('assets', 'messages', f'{role_id}.json'))
 
         default_messages = {
             "low_price": {"threshold": 300, "messages": ["..."]},

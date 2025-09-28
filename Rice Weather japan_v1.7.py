@@ -1,8 +1,18 @@
 import os
+import sys
 # sourceフォルダからゲームのロジックを読み込む
 # これで RiceGameWindow クラスが使えるようになる
 from source.rice_game_window import RiceGameWindow
 
+def resource_path(relative_path):
+    """ 実行ファイル（.exe)とソースコードの両方でリソースへのパスを解決する """
+    try:
+        # PyInstallerが作成する一時フォルダ
+        base_path = sys._MEIPASS
+    except Exception:
+        # 通常のPython環境
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 def main():
     """メイン関数"""
@@ -32,7 +42,7 @@ def main():
     # フォント確認 (main関数内でpygame.init()を再度呼ぶのは避ける)
     # pygame.init()はRiceGameWindowの__init__で一度だけ呼ばれます。
     # ここでは、フォントが正しくロードされるかどうかの確認メッセージを表示します。
-    font_check_path = os.path.join('assets', 'fonts', 'x12y16pxMaruMonica.ttf')
+    font_check_path = resource_path(os.path.join('assets', 'fonts', 'x12y16pxMaruMonica.ttf'))
     if os.path.exists(font_check_path):
         print(f"- \"{font_check_path}\" が見つかりました。ファミコン風フォントとして使用を試みます。")
     else:
@@ -40,7 +50,7 @@ def main():
         print("  ファミコン風フォントを使用するには、'assets/fonts'フォルダを作成し、その中にフォントファイルを配置してください。")
 
     # CSVファイル確認
-    csv_check_path = os.path.join("assets", "data", "news.csv")
+    csv_check_path = resource_path(os.path.join("assets", "data", "news.csv"))
     if os.path.exists(csv_check_path):
         print(f"- \"{csv_check_path}\" が見つかりました。ニュース機能が有効になります。")
     else:

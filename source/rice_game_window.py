@@ -2,6 +2,7 @@ import pygame
 import random
 import time
 import os
+import sys
 import csv
 import json
 from typing import Dict, List, Tuple, Optional
@@ -9,6 +10,16 @@ from PIL import Image
 
 from source.character import Character
 from source.news_item import NewsItem
+
+def resource_path(relative_path):
+    """ 実行ファイル (.exe) とソースコードの両方でリソースへのパスを解決する """
+    try:
+        # PyInstallerが作成する一時フォルダ
+        base_path = sys._MEIPASS
+    except Exception:
+        # 通常のPython環境
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 class RiceGameWindow:
     def __init__(self):
@@ -45,7 +56,7 @@ class RiceGameWindow:
         self.last_update = time.time()
 
         # ニュースシステム
-        self.news_items = NewsItem.load_from_csv(os.path.join("assets", "data", "news.csv"))
+        self.news_items = NewsItem.load_from_csv(resource_path(os.path.join("assets", "data", "news.csv")))
         self.showing_news = False
         self.current_news = None
         self.news_start_time = 0
@@ -69,10 +80,10 @@ class RiceGameWindow:
 
         # 画像フォルダ
         self.image_folders = {
-            'characters': os.path.join('assets', 'images', 'characters/'),
-            'backgrounds': os.path.join('assets', 'images', 'backgrounds/'),
-            'rice': os.path.join('assets', 'images', 'rice/'),
-            'ui': os.path.join('assets', 'images', 'ui/')
+            'characters': resource_path(os.path.join('assets', 'images', 'characters/')),
+            'backgrounds': resource_path(os.path.join('assets', 'images', 'backgrounds/')),
+            'rice': resource_path(os.path.join('assets', 'images', 'rice/')),
+            'ui': resource_path(os.path.join('assets', 'images', 'ui/'))
         }
 
         # --- Sound Setup ---
@@ -88,10 +99,10 @@ class RiceGameWindow:
 
         # Define sound file paths (assuming a 'sounds' folder)
         self.sound_files = {
-            "month_change": os.path.join("assets", "sounds", "month_change.wav"),
-            "text_click": os.path.join("assets", "sounds", "text_click.wav"),
-            "background_music": os.path.join("assets", "sounds", "background_music.mp3"),
-            "news_alert": os.path.join("assets", "sounds", "news_alert.wav")  # ニュース開始音
+            "month_change": resource_path(os.path.join("assets", "sounds", "month_change.wav")),
+            "text_click": resource_path(os.path.join("assets", "sounds", "text_click.wav")),
+            "background_music": resource_path(os.path.join("assets", "sounds", "background_music.mp3")),
+            "news_alert": resource_path(os.path.join("assets", "sounds", "news_alert.wav"))  # ニュース開始音
         }
         self.loaded_sounds = {}
         self.load_sounds()
@@ -199,8 +210,8 @@ class RiceGameWindow:
     def load_japanese_font(self, size: int):
         """日本語フォントを読み込み (x12y16pxMaruMonica.ttfを優先)"""
         font_paths_to_try = [
-            # 優先度1: x12y16pxMaruMonica (ファミコン風)
-            os.path.join('assets', 'fonts', 'x12y16pxMaruMonica.ttf'),
+            # 優先度1: x12y16pxMaruMonica (ファミコン風) - resource_pathを使用
+            resource_path(os.path.join('assets', 'fonts', 'x12y16pxMaruMonica.ttf')),
 
             # 優先度2: システムフォント（Windows, macOS, Linux）
             # Windows
